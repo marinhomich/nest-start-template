@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model aluno {
+  ID              Int    @id @default(autoincrement()) @db.UnsignedInt
+  TURMA_ID        Int    @db.UnsignedInt
+  NOME            String @db.VarChar(20)
+  CPF             String @db.VarChar(20)
+  EMAIL           String @db.VarChar(255)
+  TELEFONE        String @db.VarChar(20)
+  DATA_NASCIMENTO String @db.VarChar(20)
+  turma           turma  @relation(fields: [TURMA_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "aluno_ibfk_1")
+
+  @@index([TURMA_ID], map: "ALUNO_FKIndex1")
+}
+
+model disciplina {
+  ID                   Int                    @id @default(autoincrement()) @db.UnsignedInt
+  NOME                 String?                @db.VarChar(20)
+  CARGA_TEORICA        Int                    @db.UnsignedInt
+  CARGA_PRATICA        Int?                   @db.UnsignedInt
+  turma_has_disciplina turma_has_disciplina[]
+}
+
+model professor {
+  ID              Int     @id @default(autoincrement()) @db.UnsignedInt
+  NOME            String? @db.VarChar(20)
+  CPF             String  @db.VarChar(20)
+  EMAIL           String  @db.VarChar(255)
+  TELEFONE        String  @db.VarChar(20)
+  DATA_NASCIMENTO String  @db.VarChar(20)
+  turma           turma[]
+}
+
+model turma {
+  ID                   Int                    @id @default(autoincrement()) @db.UnsignedInt
+  PROFESSOR_ID         Int                    @db.UnsignedInt
+  NOME                 String?                @db.VarChar(20)
+  aluno                aluno[]
+  professor            professor              @relation(fields: [PROFESSOR_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "turma_ibfk_1")
+  turma_has_disciplina turma_has_disciplina[]
+
+  @@index([PROFESSOR_ID], map: "TURMA_FKIndex1")
+}
+
+model turma_has_disciplina {
+  TURMA_ID      Int        @db.UnsignedInt
+  DISCIPLINA_ID Int        @db.UnsignedInt
+  HORA_INICIO   DateTime?  @db.Time(0)
+  HORA_FIM      DateTime?  @db.Time(0)
+  turma         turma      @relation(fields: [TURMA_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "turma_has_disciplina_ibfk_1")
+  disciplina    disciplina @relation(fields: [DISCIPLINA_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "turma_has_disciplina_ibfk_2")
+
+  @@id([TURMA_ID, DISCIPLINA_ID])
+  @@index([TURMA_ID], map: "TURMA_has_DISCIPLINA_FKIndex1")
+  @@index([DISCIPLINA_ID], map: "TURMA_has_DISCIPLINA_FKIndex2")
+}
